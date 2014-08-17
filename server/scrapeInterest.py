@@ -1,33 +1,42 @@
+# This Python file uses the following encoding: utf-8
+
 from yapsy.PluginManager import PluginManager
-import feedparser
-import datetime
+import requests
 import sqlite3
+import bs4
+import datetime
 
 def getLibor():
-	# Get 3-month CHF Libor
+	response = requests.get("http://www.raiffeisen.ch/raiffeisen/internet/rb0027.nsf/webpagesbytitleall/965DD96752FF36F0C1256F2000248BA1")
+	soup = bs4.BeautifulSoup(response.text)
+	today = datetime.date.today().strftime('%d.%m.%Y')
 	
-	# Get 6-month CHF Libor
-	
-	d=feedparser.parse("http://www.snb.ch/selector/en/mmr/intfeed/rss")
-#	today = datetime.date.today()
-	today = datetime.date(2014,8,14)
-	print(str(today))
-	for post in d.entries:
-		if "LIB " + str(today) in post.title:
-			print post.title + ": " + post.link + "\n"
-			print post["cb_value"]
-			
+	for table in soup.find_all('table'):
+		if('vom: ' + today in table.tr.th.get_text()):
+			td = table.find_all('td')
+			if(len(td) >= 4):
+				libor3Month = td[1].get_text()
+				if(libor3Month.endswith('%')):
+					libor3Month = libor3Month[:-2]
+				
+				libor6Month = td[3].get_text()
+				if(libor6Month.endswith('%')):
+					libor6Month = libor6Month[:-2]
+				
+				print('Libor 3 Monate = ' + libor3Month)
+				print('Libor 6 Monate = ' + libor6Month)
+			else:
+				print('Error: Expected 4 entries in libor table but got ' + str(len(td)))
+				
 			newRate = []
-			newRate.append((post["cb_value"], today))
+			todayDB = datetime.datetime.strptime(today, '%d.%m.%Y').strftime('%Y-%m-%d')
+			newRate.append((todayDB, libor3Month, libor6Month))
 
 			con = sqlite3.connect('liborWatch.sqlite')
 			with con:
 				cur = con.cursor()
-				cur.execute("CREATE TABLE IF NOT EXISTS Rates(id INTEGER PRIMARY KEY, date TEXT, rate REAL)")
-				cur.executemany("INSERT INTO Rates VALUES(NULL, ?, ?)", newRate)
-			
-			# Look for today's title post:
-			# 'title': u'CH: 0.02 LIB 2014-08-14 SNB 3-month LIBOR CHF'
+				cur.execute("CREATE TABLE IF NOT EXISTS Rates(id INTEGER PRIMARY KEY, date TEXT, rate3Month REAL, rate6Month REAL)")
+				cur.executemany("INSERT INTO Rates VALUES(NULL, ?, ?, ?)", newRate)
 		
 			
 def main():   
