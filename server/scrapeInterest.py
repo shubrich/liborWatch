@@ -35,7 +35,7 @@ def getLibor():
 			con = sqlite3.connect('liborWatch.sqlite')
 			with con:
 				cur = con.cursor()
-				cur.execute("CREATE TABLE IF NOT EXISTS Rates(id INTEGER PRIMARY KEY, date TEXT, rate3Month REAL, rate6Month REAL)")
+				cur.execute("CREATE TABLE IF NOT EXISTS LiborRate(id INTEGER PRIMARY KEY, date TEXT, rate3Month REAL, rate6Month REAL)")
 				cur.executemany("INSERT INTO Rates VALUES(NULL, ?, ?, ?)", newRate)
 		
 			
