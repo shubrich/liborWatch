@@ -1,0 +1,9 @@
+[Core]
+Name = Raiffeisen
+Module = raiffeisenPlugin
+
+[Documentation]
+Author = Sebastian Hubrich
+Version = 0.1
+Website = 
+Description = Scrape the Raiffeisen.ch website for the fixed mortgate rates (1 year up to 10 year)
