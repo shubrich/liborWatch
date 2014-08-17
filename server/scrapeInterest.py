@@ -6,7 +6,7 @@ import sqlite3
 import bs4
 import datetime
 
-def getLibor():
+def getLiborRates():
 	response = requests.get("http://www.raiffeisen.ch/raiffeisen/internet/rb0027.nsf/webpagesbytitleall/965DD96752FF36F0C1256F2000248BA1")
 	soup = bs4.BeautifulSoup(response.text)
 	today = datetime.date.today().strftime('%d.%m.%Y')
@@ -30,25 +30,27 @@ def getLibor():
 				
 			newRate = []
 			todayDB = datetime.datetime.strptime(today, '%d.%m.%Y').strftime('%Y-%m-%d')
-			newRate.append((todayDB, libor3Month, libor6Month))
+			
 
 			con = sqlite3.connect('liborWatch.sqlite')
 			with con:
 				cur = con.cursor()
 				cur.execute("CREATE TABLE IF NOT EXISTS LiborRate(id INTEGER PRIMARY KEY, date TEXT, rate3Month REAL, rate6Month REAL)")
-				cur.executemany("INSERT INTO Rates VALUES(NULL, ?, ?, ?)", newRate)
-		
+				cur.execute("INSERT INTO LiborRate VALUES(NULL, ?, ?, ?)", (todayDB, libor3Month, libor6Month))
+
+def getBankRates():
+    # Load the plugins from the plugin directory.
+    manager = PluginManager()
+    manager.setPluginPlaces(["plugins"])
+    manager.collectPlugins()
+
+    # Loop round the plugins and print their names.
+    for plugin in manager.getAllPlugins():
+        plugin.plugin_object.print_name2()
 			
 def main():   
-#    # Load the plugins from the plugin directory.
-#    manager = PluginManager()
-#    manager.setPluginPlaces(["plugins"])
-#    manager.collectPlugins()
-#
-#    # Loop round the plugins and print their names.
-#    for plugin in manager.getAllPlugins():
-#        plugin.plugin_object.print_name2()
-	getLibor()
+	getLiborRates()
+	getBankRates()
 
 if __name__ == "__main__":
     main()
