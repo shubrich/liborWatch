@@ -22,9 +22,10 @@ Example
 Let's assume a libor mortgage of 360k and a libor rate of 0.92%. If the libor rate doesn't change, this is how the
 next years would look like if we only paid interest. Also assume a 10 year fixed rate of 2%. Let's add our buffer
 of 0.5% and we have 2.5% over 10 years. This would result in paid interest of 90k over 10 years.
-10-year cost = 360k * 2% * 10 years = 72'000
-10-year buffer cost = 360k * 2.5% * 10 years = 90'000
-10-year libor cost (assumption) = 360k * 0.92% * 10 years = 33'120
+
+10-year cost = 360k * 2% * 10 years = 72'000  
+10-year buffer cost = 360k * 2.5% * 10 years = 90'000  
+10-year libor cost (assumption) = 360k * 0.92% * 10 years = 33'120  
 
 Potential upside: 38'880 saved over 10 years
 Potential downside: 18'000 spent more over 10 years if libor climbs
@@ -43,14 +44,14 @@ How it works
 
 Backend
 -------
-Scrape the banks website daily for the current fixed mortgage rate and save them in the database
-Scrape the banks website daily for the current libor rate and save them in the database
+Scrape the banks website daily for the current fixed mortgage rate and save them in the database  
+Scrape the banks website daily for the current libor rate and save them in the database  
 
 TODO 
 -----
-Calculate daily all defined mortgages and notify if necessary
-API / Server (Sails? Django, ...)
-UI to update values (Ember? Express? Backbone?)
+Calculate daily all defined mortgages and notify if necessary  
+API / Server (Express?, Sails? Django?, ...)  
+UI to update values (Ember?, Backbone?)  
 
 
 
