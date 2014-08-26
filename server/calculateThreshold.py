@@ -1,9 +1,28 @@
 # This Python file uses the following encoding: utf-8
 
 import sqlite3
+import smtplib
 import datetime as dt
 from datetime import datetime, timedelta
 from calendar import monthrange
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+
+def sendMail(recipient, subject, body):
+	fromaddr = "liborWatch@nla-01.nextlevelapps.com"
+	msg = MIMEMultipart()
+	msg['From'] = fromaddr
+	msg['To'] = recipient
+	msg['Subject'] = subject
+
+	msg.attach(MIMEText(body, 'plain'))
+	try:
+		server = smtplib.SMTP('localhost')
+		text = msg.as_string()
+		server.sendmail(fromaddr, toaddr, text)
+	except:
+		print("Exception while trying to send mail to {0}:\n\t{1}\n\t{2}".format(recipient, subject, body))
+		return False
 
 
 def monthdelta(d1, d2):
@@ -17,8 +36,10 @@ def monthdelta(d1, d2):
             break
     return delta
 
+
 def percentageOf(part, whole):
   return 100.0 * part/whole
+
 
 def calculateThresholds():
 	# Iterate the mortgage rows and calculate the threshold for each mortgage (the point where we'd have to switch to a fixed rate mortgage)
@@ -33,7 +54,7 @@ def calculateThresholds():
 		libor3Months = liborResult[2]
 		libor6Months = liborResult[3]
 		
-		cur.execute("SELECT * FROM Mortgage")
+		cur.execute("SELECT Mortgage.id, Mortgage.fk_customer, Mortgage.bank, Mortgage.mortgageSum, Mortgage.liborMargin, Mortgage.discount, Mortgage.yearlyAmortization, Mortgage.startDate, Mortgage.interestPaid, Mortgage.planningHorizon, Mortgage.maxInterestOverHorizon, Mortgage.lastInterestPaidTS, Mortgage.lastMaxInterestResult, Mortgage.liborMonths, Customer.email FROM Mortgage INNER JOIN Customer ON Mortgage.fk_customer = Customer.id")
 		mortgageResults = cur.fetchall()
 		for mortgage in mortgageResults:
 			fixedRate = []
@@ -54,7 +75,7 @@ def calculateThresholds():
 			
 			maxInterestCost = mortgageSum * planningHorizon * (maxInterestOverHorizon / 100)
 			startDate = datetime.strptime(mortgage[7], '%Y-%m-%d')
-			startDate = datetime.strptime('2014-01-25', '%Y-%m-%d')
+#			startDate = datetime.strptime('2014-01-25', '%Y-%m-%d')
 			monthsSinceStartDate = monthdelta(startDate, dt.datetime.now())
 			remainingMonthsInPlanningHorizon = ((planningHorizon * 12)) - monthsSinceStartDate
 			residualDebt = mortgageSum - ((yearlyAmortization / 12) * monthsSinceStartDate)
@@ -82,11 +103,45 @@ def calculateThresholds():
 			cur.execute("UPDATE Mortgage SET lastMaxInterestResult=? WHERE Id=?", (lastMaxInterestResult, mortgageID))        
 			con.commit()
 			
-			# TODO: Implement a warning mechanism if lastMaxInterestResult is close (or over) to the interest rate
+			# Warning mechanism if lastMaxInterestResult is close (or over) to the interest rate
 			# for a fixed mortgage that spans the remainingMonthsInPlanningHorizon
+			fixedMortgageTime = remainingMonthsInPlanningHorizon / 12
+
+			if (len(fixedRate) < fixedMortgageTime):
+				subject = "liborWatch - ERROR"
+				message = "There are only {0} fixed mortgage rates but we need {1}".format(len(fixedRate), fixedMortgageTime)
+				sendMail(mortgage[14], subject, message)
+				return
 			
+			matchingFixedRate = fixedRate[fixedMortgageTime - 1]
+			if matchingFixedRate == -100:
+				subject = "liborWatch - ERROR"
+				message = "The matching fixed rate ({0} year(s)) doesn't seem to be available from this bank or we don't have rate information.".format(fixedMortgageTime)
+				sendMail(mortgage[14], subject, message)
+				return
+			
+			interestDifference = lastMaxInterestResult - matchingFixedRate
+			if interestDifference > 0.5:
+				return
+			
+			subject = "liborWatch"
+			if interestDifference <= 0.5 and interestDifference > 0.3:
+				subject = "liborWatch - INFO"
+				
+			
+			if interestDifference <= 0.3 and interestDifference > 0.1:
+				subject = "liborWatch - WARN"
+			
+			if interestDifference <= 0.1:
+				subject = "liborWatch - WARN"
+
+			message = "The rate for {0} years fixed mortgages ({1}%) approaches our threshold of {2}% with only {3}% difference".format(fixedMortgageTime, matchingFixedRate, lastMaxInterestResult, interestDifference)
+			sendMail(mortgage[14], subject, message)
+
+	
 def main():   
 	calculateThresholds()
+
 
 if __name__ == "__main__":
     main()
