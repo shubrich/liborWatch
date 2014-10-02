@@ -17,9 +17,9 @@ def sendMail(recipient, subject, body):
 
 	msg.attach(MIMEText(body, 'plain'))
 	try:
-		server = smtplib.SMTP('localhost')
+		server = smtplib.SMTP('nla-01.nextlevelapps.com')
 		text = msg.as_string()
-		server.sendmail(fromaddr, toaddr, text)
+		server.sendmail(fromaddr, recipient, text)
 	except:
 		print("Exception while trying to send mail to {0}:\n\t{1}\n\t{2}".format(recipient, subject, body))
 		return False
