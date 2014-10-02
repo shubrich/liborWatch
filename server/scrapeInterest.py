@@ -13,28 +13,27 @@ def getLiborRates():
 	today = datetime.date.today().strftime('%d.%m.%Y')
 	
 	for table in soup.find_all('table'):
-		if('vom: ' + today in table.tr.th.get_text()):
-			td = table.find_all('td')
-			if(len(td) >= 4):
-				libor3Month = td[1].get_text()
-				if(libor3Month.endswith('%')):
-					libor3Month = libor3Month[:-2]
-				
-				libor6Month = td[3].get_text()
-				if(libor6Month.endswith('%')):
-					libor6Month = libor6Month[:-2]
-				
-			else:
-				print('Error: Expected 4 entries in libor table but got ' + str(len(td)))
-				
-			newRate = []
-			todayDB = datetime.datetime.strptime(today, '%d.%m.%Y').strftime('%Y-%m-%d')
+		td = table.find_all('td')
+		if(len(td) >= 4):
+			libor3Month = td[1].get_text()
+			if(libor3Month.endswith('%')):
+				libor3Month = libor3Month[:-2]
 			
-			con = sqlite3.connect('liborWatch.sqlite')
-			with con:
-				cur = con.cursor()
-				cur.execute("CREATE TABLE IF NOT EXISTS LiborRate(id INTEGER PRIMARY KEY, date TEXT, rate3Month REAL, rate6Month REAL)")
-				cur.execute("INSERT INTO LiborRate VALUES(NULL, ?, ?, ?)", (todayDB, libor3Month, libor6Month))
+			libor6Month = td[3].get_text()
+			if(libor6Month.endswith('%')):
+				libor6Month = libor6Month[:-2]
+			
+		else:
+			print('Error: Expected 4 entries in libor table but got ' + str(len(td)))
+			
+		newRate = []
+		todayDB = datetime.datetime.strptime(today, '%d.%m.%Y').strftime('%Y-%m-%d')
+		
+		con = sqlite3.connect('liborWatch.sqlite')
+		with con:
+			cur = con.cursor()
+			cur.execute("CREATE TABLE IF NOT EXISTS LiborRate(id INTEGER PRIMARY KEY, date TEXT, rate3Month REAL, rate6Month REAL)")
+			cur.execute("INSERT INTO LiborRate VALUES(NULL, ?, ?, ?)", (todayDB, libor3Month, libor6Month))
 
 def getBankRates():
     # Load the plugins from the plugin directory.
