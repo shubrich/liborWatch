@@ -135,7 +135,7 @@ def calculateThresholds():
 			if interestDifference <= 0.1:
 				subject = "liborWatch - WARN"
 
-			message = "The rate for {0} years fixed mortgages ({1}%) approaches our threshold of {2}% with only {3}% difference".format(fixedMortgageTime, matchingFixedRate, lastMaxInterestResult, interestDifference)
+			message = "The rate for {0} years fixed mortgages ({1}%) approaches our threshold of {2}% with only {3}% difference.\r\nThe current libor rate is at {4}%".format(fixedMortgageTime, matchingFixedRate, lastMaxInterestResult, interestDifference, libor3Months)
 			sendMail(mortgage[14], subject, message)
 
 	
