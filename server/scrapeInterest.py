@@ -54,12 +54,14 @@ def getBankRates():
 		for rate in rates:
 			iCnt = iCnt + 1
 			newRate.append((plugin.name, today, iCnt, rate))
+			# print('execute insert statement ' + plugin.name, str(today), str(iCnt), str(rate))
 
 		con = sqlite3.connect('liborWatch.sqlite')
 		with con:
 			cur = con.cursor()
 			cur.execute("CREATE TABLE IF NOT EXISTS BankRate(id INTEGER PRIMARY KEY, bankName TEXT, date TEXT, fixedForYears INTEGER, rate REAL)")
 			cur.executemany("INSERT INTO BankRate VALUES(NULL, ?, ?, ?, ?)", newRate)
+			
 			
 			
 def main():   
