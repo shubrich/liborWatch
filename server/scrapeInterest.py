@@ -29,7 +29,7 @@ def getLiborRate(libor_url):
 def getBankRates():
     # Load the plugins from the plugin directory.
 	manager = PluginManager()
-	manager.setPluginPlaces(["plugins"])
+	manager.setPluginPlaces(["./dev/liborWatch/server/plugins"])
 	manager.collectPlugins()
 	today = datetime.date.today().strftime('%Y-%m-%d')
 
