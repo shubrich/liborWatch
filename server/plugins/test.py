@@ -33,8 +33,10 @@ for table in soup.find_all('table'):
           continue
 
         rate = td.get_text()
+        print("rate = " + rate)
         if(rate.endswith('%')):
           rate = rate[:-2]
-        rates.append(float(rate))
+          rates.append(float(rate))
+          print("appending " + str(rate))
     else:
       print('Error: Expected 18 entries in mortgage table but got ' + str(len(tdCollection)))

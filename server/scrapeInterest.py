@@ -6,33 +6,25 @@ import sqlite3
 import bs4
 import datetime
 
-
-def getLiborRates():
-	response = requests.get("http://www.raiffeisen.ch/raiffeisen/internet/rb0027.nsf/webpagesbytitleall/965DD96752FF36F0C1256F2000248BA1")
-	soup = bs4.BeautifulSoup(response.text)
+def saveLiborRate(libor3Month, libor6Month):
 	today = datetime.date.today().strftime('%d.%m.%Y')
-	
-	for table in soup.find_all('table'):
-		td = table.find_all('td')
-		if(len(td) >= 4):
-			libor3Month = td[1].get_text()
-			if(libor3Month.endswith('%')):
-				libor3Month = libor3Month[:-2]
-			
-			libor6Month = td[3].get_text()
-			if(libor6Month.endswith('%')):
-				libor6Month = libor6Month[:-2]
-			
-		else:
-			print('Error: Expected 4 entries in libor table but got ' + str(len(td)))
-			
-		todayDB = datetime.datetime.strptime(today, '%d.%m.%Y').strftime('%Y-%m-%d')
-		
-		con = sqlite3.connect('liborWatch.sqlite')
-		with con:
-			cur = con.cursor()
-			cur.execute("CREATE TABLE IF NOT EXISTS LiborRate(id INTEGER PRIMARY KEY, date TEXT, rate3Month REAL, rate6Month REAL)")
-			cur.execute("INSERT INTO LiborRate VALUES(NULL, ?, ?, ?)", (todayDB, libor3Month, libor6Month))
+	todayDB = datetime.datetime.strptime(today, '%d.%m.%Y').strftime('%Y-%m-%d')
+	con = sqlite3.connect('liborWatch.sqlite')
+	with con:
+		cur = con.cursor()
+		cur.execute("CREATE TABLE IF NOT EXISTS LiborRate(id INTEGER PRIMARY KEY, date TEXT, rate3Month REAL, rate6Month REAL)")
+		cur.execute("INSERT INTO LiborRate VALUES(NULL, ?, ?, ?)", (todayDB, libor3Month, libor6Month))
+
+def getLiborRate(libor_url):
+	response = requests.get(libor_url)
+	soup = bs4.BeautifulSoup(response.text)
+
+	tableCollection = soup.find_all('table')
+	liborTable = tableCollection[1]
+	liborTableRows = liborTable.find_all('tr')
+	liborTableRowHeaders = liborTableRows[0].find_all('th')
+	liborRate = liborTableRowHeaders[0].get_text()
+	return liborRate
 
 def getBankRates():
     # Load the plugins from the plugin directory.
@@ -45,7 +37,7 @@ def getBankRates():
 	for plugin in manager.getAllPlugins():
 		rates = plugin.plugin_object.getRates()
 		if(len(rates) != 10):
-			print('Error: We did not get 10 rates from the plugin ' + plugin.name)
+			print('Error: We did not get 10 rates from the plugin ' + plugin.name + ' - ' + str(len(rates)))
 			return
 			
 		newRate = []
@@ -64,7 +56,9 @@ def getBankRates():
 			
 			
 def main():   
-	getLiborRates()
+	libor3Months = getLiborRate("http://www.finanzen.ch/zinsen/Libor-CHF-3-Monate")
+	libor6Months = getLiborRate("http://www.finanzen.ch/zinsen/Libor-CHF-6-Monate")
+	saveLiborRate(libor3Months, libor6Months)
 	getBankRates()
 
 if __name__ == "__main__":
