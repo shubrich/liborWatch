@@ -26,7 +26,6 @@ def getLiborRates():
 		else:
 			print('Error: Expected 4 entries in libor table but got ' + str(len(td)))
 			
-		newRate = []
 		todayDB = datetime.datetime.strptime(today, '%d.%m.%Y').strftime('%Y-%m-%d')
 		
 		con = sqlite3.connect('liborWatch.sqlite')
