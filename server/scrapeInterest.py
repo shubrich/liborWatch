@@ -5,6 +5,9 @@ import requests
 import sqlite3
 import bs4
 import datetime
+import logging
+logging.basicConfig()
+log = logging.getLogger('yapsy')
 
 def saveLiborRate(libor3Month, libor6Month):
 	today = datetime.date.today().strftime('%d.%m.%Y')
@@ -29,13 +32,17 @@ def getLiborRate(libor_url):
 def getBankRates():
     # Load the plugins from the plugin directory.
 	manager = PluginManager()
-	manager.setPluginPlaces(["./dev/liborWatch/server/plugins"])
+	# Server
+#	manager.setPluginPlaces(["./dev/liborWatch/server/plugins"])
+	# Dev
+	manager.setPluginPlaces(["./plugins"])
 	manager.collectPlugins()
 	today = datetime.date.today().strftime('%Y-%m-%d')
-
+	
     # Loop round the plugins and get the bank rates
 	for plugin in manager.getAllPlugins():
 		rates = plugin.plugin_object.getRates()
+		print(rates);
 		if(len(rates) != 10):
 			print('Error: We did not get 10 rates from the plugin ' + plugin.name + ' - ' + str(len(rates)))
 			return
@@ -45,7 +52,7 @@ def getBankRates():
 		for rate in rates:
 			iCnt = iCnt + 1
 			newRate.append((plugin.name, today, iCnt, rate))
-			# print('execute insert statement ' + plugin.name, str(today), str(iCnt), str(rate))
+#			print('execute insert statement ' + plugin.name, str(today), str(iCnt), str(rate))
 
 		con = sqlite3.connect('liborWatch.sqlite')
 		with con:
@@ -56,9 +63,9 @@ def getBankRates():
 			
 			
 def main():   
-	libor3Months = getLiborRate("http://www.finanzen.ch/zinsen/Libor-CHF-3-Monate")
-	libor6Months = getLiborRate("http://www.finanzen.ch/zinsen/Libor-CHF-6-Monate")
-	saveLiborRate(libor3Months, libor6Months)
+#	libor3Months = getLiborRate("http://www.finanzen.ch/zinsen/Libor-CHF-3-Monate")
+#	libor6Months = getLiborRate("http://www.finanzen.ch/zinsen/Libor-CHF-6-Monate")
+#	saveLiborRate(libor3Months, libor6Months)
 	getBankRates()
 
 if __name__ == "__main__":
