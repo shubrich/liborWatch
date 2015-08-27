@@ -9,20 +9,21 @@ from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 
 def sendMail(recipient, subject, body):
-	fromaddr = "liborWatch@nla-01.nextlevelapps.com"
-	msg = MIMEMultipart()
-	msg['From'] = fromaddr
-	msg['To'] = recipient
-	msg['Subject'] = subject
-
-	msg.attach(MIMEText(body, 'plain'))
-	try:
-		server = smtplib.SMTP('nla-01.nextlevelapps.com')
-		text = msg.as_string()
-		server.sendmail(fromaddr, recipient, text)
-	except:
-		print("Exception while trying to send mail to {0}:\n\t{1}\n\t{2}".format(recipient, subject, body))
-		return False
+	print('test')
+#	fromaddr = "liborWatch@nla-01.nextlevelapps.com"
+#	msg = MIMEMultipart()
+#	msg['From'] = fromaddr
+#	msg['To'] = recipient
+#	msg['Subject'] = subject
+#
+#	msg.attach(MIMEText(body, 'plain'))
+#	try:
+#		server = smtplib.SMTP('nla-01.nextlevelapps.com')
+#		text = msg.as_string()
+#		server.sendmail(fromaddr, recipient, text)
+#	except:
+#		print("Exception while trying to send mail to {0}:\n\t{1}\n\t{2}".format(recipient, subject, body))
+#		return False
 
 
 def monthdelta(d1, d2):
@@ -120,22 +121,23 @@ def calculateThresholds():
 				sendMail(mortgage[14], subject, message)
 				return
 			
-			interestDifference = lastMaxInterestResult - matchingFixedRate
-      if interestDifference > 0.3:
-      	return
+	interestDifference = lastMaxInterestResult - matchingFixedRate
+	if interestDifference > 0.3:
+		print('interestDifference = ' + str(interestDifference))
+		return
 
-      subject = "liborWatch"
-      if interestDifference <= 0.3 and interestDifference > 0.2:
-              subject = "liborWatch - INFO"
+	subject = "liborWatch"
+ 	if interestDifference <= 0.3 and interestDifference > 0.2:
+ 		subject = "liborWatch - INFO"
 
-      if interestDifference <= 0.2 and interestDifference > 0.1:
-              subject = "liborWatch - WARN"
+	if interestDifference <= 0.2 and interestDifference > 0.1:
+ 		subject = "liborWatch - WARN"
 
-      if interestDifference <= 0.1:
-              subject = "liborWatch - WARN"
+	if interestDifference <= 0.1:
+ 		subject = "liborWatch - WARN"
 
-			message = "The rate for {0} years fixed mortgages ({1}%) approaches our threshold of {2}% with only {3}% difference.\r\nThe current libor rate is at {4}%".format(fixedMortgageTime, matchingFixedRate, lastMaxInterestResult, interestDifference, libor3Months)
-			sendMail(mortgage[14], subject, message)
+	message = "The rate for {0} years fixed mortgages ({1}%) approaches our threshold of {2}% with only {3}% difference.\r\nThe current libor rate is at {4}%".format(fixedMortgageTime, matchingFixedRate, lastMaxInterestResult, interestDifference, libor3Months)
+	sendMail(mortgage[14], subject, message)
 
 	
 def main():   
