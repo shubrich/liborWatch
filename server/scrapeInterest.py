@@ -33,9 +33,12 @@ def getBankRates():
     # Load the plugins from the plugin directory.
 	manager = PluginManager()
 	# Server
-#	manager.setPluginPlaces(["./dev/liborWatch/server/plugins"])
+	# manager.setPluginPlaces(["./dev/liborWatch/server/plugins"])
 	# Dev
-	manager.setPluginPlaces(["./plugins"])
+	# manager.setPluginPlaces(["./plugins"])
+	# Local
+	manager.setPluginPlaces(["./dev/NextLevelApps/liborWatch/server/plugins"])
+
 	manager.collectPlugins()
 	today = datetime.date.today().strftime('%Y-%m-%d')
 	
@@ -63,9 +66,9 @@ def getBankRates():
 			
 			
 def main():   
-#	libor3Months = getLiborRate("http://www.finanzen.ch/zinsen/Libor-CHF-3-Monate")
-#	libor6Months = getLiborRate("http://www.finanzen.ch/zinsen/Libor-CHF-6-Monate")
-#	saveLiborRate(libor3Months, libor6Months)
+	libor3Months = getLiborRate("http://www.finanzen.ch/zinsen/Libor-CHF-3-Monate")
+	libor6Months = getLiborRate("http://www.finanzen.ch/zinsen/Libor-CHF-6-Monate")
+	saveLiborRate(libor3Months, libor6Months)
 	getBankRates()
 
 if __name__ == "__main__":
