@@ -19,7 +19,11 @@ def saveLiborRate(libor3Month, libor6Month):
 		cur.execute("INSERT INTO LiborRate VALUES(NULL, ?, ?, ?)", (todayDB, libor3Month, libor6Month))
 
 def getLiborRate(libor_url):
-	response = requests.get(libor_url)
+	headers = {
+		'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36'
+		}
+	
+	response = requests.get(libor_url, headers=headers)
 	soup = bs4.BeautifulSoup(response.text)
 
 	tableCollection = soup.find_all('table')
