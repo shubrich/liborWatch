@@ -22,15 +22,15 @@ def getLiborRate(libor_url):
 	headers = {
 		'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36'
 		}
-	
+
 	response = requests.get(libor_url, headers=headers)
 	soup = bs4.BeautifulSoup(response.text, "html.parser")
 
 	tableCollection = soup.find_all('table')
 	liborTable = tableCollection[1]
 	liborTableRows = liborTable.find_all('tr')
-	liborTableRowHeaders = liborTableRows[0].find_all('th')
-	liborRate = liborTableRowHeaders[0].get_text()
+	liborTableRowData = liborTableRows[1].find_all('td')
+	liborRate = liborTableRowData[1].get_text()
 	return liborRate
 
 def getBankRates():
@@ -45,7 +45,7 @@ def getBankRates():
 
 	manager.collectPlugins()
 	today = datetime.date.today().strftime('%Y-%m-%d')
-	
+
     # Loop round the plugins and get the bank rates
 	for plugin in manager.getAllPlugins():
 		rates = plugin.plugin_object.getRates()
@@ -53,7 +53,7 @@ def getBankRates():
 		if(len(rates) != 10):
 			print('Error: We did not get 10 rates from the plugin ' + plugin.name + ' - ' + str(len(rates)))
 			return
-			
+
 		newRate = []
 		iCnt = 0;
 		for rate in rates:
@@ -66,10 +66,10 @@ def getBankRates():
 			cur = con.cursor()
 			cur.execute("CREATE TABLE IF NOT EXISTS BankRate(id INTEGER PRIMARY KEY, bankName TEXT, date TEXT, fixedForYears INTEGER, rate REAL)")
 			cur.executemany("INSERT INTO BankRate VALUES(NULL, ?, ?, ?, ?)", newRate)
-			
-			
-			
-def main():   
+
+
+
+def main():
 	libor3Months = getLiborRate("http://www.finanzen.ch/zinsen/Libor-CHF-3-Monate")
 	libor6Months = getLiborRate("http://www.finanzen.ch/zinsen/Libor-CHF-6-Monate")
 	saveLiborRate(libor3Months, libor6Months)
