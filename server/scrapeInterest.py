@@ -24,7 +24,7 @@ def getLiborRate(libor_url):
 		}
 	
 	response = requests.get(libor_url, headers=headers)
-	soup = bs4.BeautifulSoup(response.text)
+	soup = bs4.BeautifulSoup(response.text, "html.parser")
 
 	tableCollection = soup.find_all('table')
 	liborTable = tableCollection[1]
